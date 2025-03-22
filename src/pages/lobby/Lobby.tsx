@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../utils/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { Tables } from '../../utils/supabase';
@@ -43,7 +43,35 @@ const Lobby: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setGames(data || []);
+
+      // 플레이어가 나간 게임이나 오래된 대기 게임을 필터링
+      const now = new Date();
+      const filteredGames = (data || []).filter(game => {
+        const gameDate = new Date(game.created_at);
+        const hoursDiff = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
+        
+        // 게임이 24시간 이상 지났거나
+        if (hoursDiff >= 24) {
+          deleteGame(game.id);
+          return false;
+        }
+        
+        // 대기 중인 게임이 1시간 이상 지났거나
+        if (game.status === 'waiting' && hoursDiff >= 1) {
+          deleteGame(game.id);
+          return false;
+        }
+        
+        // 게임 생성자가 나간 경우
+        if (game.status === 'waiting' && !game.player1_id) {
+          deleteGame(game.id);
+          return false;
+        }
+
+        return true;
+      });
+
+      setGames(filteredGames);
     } catch (error) {
       console.error('Error loading games:', error);
     } finally {
@@ -51,47 +79,34 @@ const Lobby: React.FC = () => {
     }
   };
 
-  const createGame = async () => {
+  const deleteGame = async (gameId: string) => {
     try {
-      // 기본 맵(밭고누)으로 게임 생성
-      const { data: mapData } = await supabase
-        .from('game_maps')
-        .select()
-        .eq('name', '밭고누')
-        .single();
-
-      if (!mapData) throw new Error('기본 맵을 찾을 수 없습니다.');
-
-      const { data, error } = await supabase.from('games').insert({
-        map_id: mapData.id,
-        player1_id: user!.id,
-        game_state: {
-          board: Array(9).fill(null),
-          currentPlayer: 1,
-        },
-        status: 'waiting',
-      }).select();
-
-      if (error) throw error;
-      if (data) {
-        navigate(`/game/${data[0].id}`);
-      }
+      await supabase
+        .from('games')
+        .delete()
+        .eq('id', gameId);
     } catch (error) {
-      console.error('Error creating game:', error);
-      alert('게임 생성에 실패했습니다.');
+      console.error('Error deleting game:', error);
     }
   };
 
   const joinGame = async (gameId: string) => {
+    if (!user) {
+      alert('게임에 참여하려면 로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('games')
         .update({
-          player2_id: user!.id,
+          player2_id: user.id,
           status: 'playing',
-          current_turn: user!.id,
+          current_turn: user.id,
         })
-        .eq('id', gameId);
+        .eq('id', gameId)
+        .eq('status', 'waiting'); // 대기 중인 게임만 참여 가능
 
       if (error) throw error;
       navigate(`/game/${gameId}`);
@@ -110,16 +125,16 @@ const Lobby: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">게임 로비</h1>
-          <button
-            onClick={createGame}
+          <Link
+            to="/game/create"
             className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             새 게임 만들기
-          </button>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

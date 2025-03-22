@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 
+// 간단한 이메일 유효성 검사 함수 예시
+const isValidEmail = (email: string) => {
+  return /\S+@\S+\.\S+/.test(email);
+};
+
 const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,17 +18,37 @@ const Register: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
+  
+    if (!isValidEmail(email)) {
+      alert('유효한 이메일 주소를 입력해주세요.');
+      setIsLoading(false);
+      return;
+    }
+  
+    if (password.length < 6) { // 예시: 최소 6자 이상
+      alert('비밀번호는 최소 6자 이상이어야 합니다.');
+      setIsLoading(false);
+      return;
+    }
+  
+    if (username.length < 2) { // 예시: 최소 2자 이상
+      alert('사용자 이름은 최소 2자 이상이어야 합니다.');
+      setIsLoading(false);
+      return;
+    }
+  
     try {
       await signUp(email, password, username);
       alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
       navigate('/login');
     } catch (error) {
       alert('회원가입에 실패했습니다. 입력하신 정보를 확인해주세요.');
+      console.error("회원가입 에러:", error); // 자세한 에러 로그 확인
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
