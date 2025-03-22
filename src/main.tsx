@@ -1,10 +1,32 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+import { supabase } from './utils/supabase';
+import { useUserStore } from './stores/userStore';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+supabase.auth.getSession().then(({ data: { session } }) => {
+  if (session?.user) {
+    useUserStore.getState().setUser({
+      id: session.user.id,
+      email: session.user.email || '',
+    });
+  }
+});
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  if (session?.user) {
+    useUserStore.getState().setUser({
+      id: session.user.id,
+      email: session.user.email || '',
+    });
+  } else {
+    useUserStore.getState().clearUser();
+  }
+});
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
     <App />
-  </StrictMode>,
-)
+  </React.StrictMode>,
+);
