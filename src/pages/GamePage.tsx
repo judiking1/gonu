@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useGameRoom } from '../hooks/useGameRoom';
+import GonuBoard from '../components/game/GonuBoard';
 
 export default function GamePage() {
   const { gameId } = useParams();
@@ -16,6 +17,7 @@ export default function GamePage() {
       <p>게임 종류: {game.game_type}</p>
       <p>시작 시간: {new Date(game.started_at).toLocaleString()}</p>
       <p>종료 여부: {game.ended_at ? '종료' : '진행 중'}</p>
+      <GonuBoard />
     </div>
   );
 }
