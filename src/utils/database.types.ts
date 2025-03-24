@@ -66,10 +66,12 @@ export interface Database {
           player2_id: string | null
           current_turn: string | null
           game_state: Json
-          status: 'waiting' | 'playing' | 'finished'
+          status: 'waiting' | 'ready' | 'playing' | 'finished'
           winner_id: string | null
           created_at: string
           updated_at: string
+          player1_ready: boolean
+          player2_ready: boolean
         }
         Insert: {
           id?: string
@@ -78,10 +80,12 @@ export interface Database {
           player2_id?: string | null
           current_turn?: string | null
           game_state: Json
-          status?: 'waiting' | 'playing' | 'finished'
+          status?: 'waiting' | 'ready' | 'playing' | 'finished'
           winner_id?: string | null
           created_at?: string
           updated_at?: string
+          player1_ready?: boolean
+          player2_ready?: boolean
         }
         Update: {
           id?: string
@@ -90,10 +94,12 @@ export interface Database {
           player2_id?: string | null
           current_turn?: string | null
           game_state?: Json
-          status?: 'waiting' | 'playing' | 'finished'
+          status?: 'waiting' | 'ready' | 'playing' | 'finished'
           winner_id?: string | null
           created_at?: string
           updated_at?: string
+          player1_ready?: boolean
+          player2_ready?: boolean
         }
       }
       chat_messages: {

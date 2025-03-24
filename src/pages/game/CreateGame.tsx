@@ -60,6 +60,8 @@ const CreateGame: React.FC = () => {
             currentPlayer: user!.id
           },
           status: 'waiting',
+          player1_ready: false,
+          player2_ready: false,
         })
         .select()
         .single();

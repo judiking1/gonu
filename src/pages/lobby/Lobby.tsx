@@ -98,20 +98,42 @@ const Lobby: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
+      // 먼저 게임 상태를 확인
+      const { data: gameData, error: checkError } = await supabase
+        .from('games')
+        .select('*')
+        .eq('id', gameId)
+        .single();
+
+      if (checkError) {
+        console.error('게임 상태 확인 에러:', checkError);
+        alert('게임 정보를 확인할 수 없습니다.');
+        return;
+      }
+
+      if (gameData.player2_id || gameData.status !== 'waiting') {
+        alert('이미 다른 플레이어가 참여했거나 게임이 시작되었습니다.');
+        return;
+      }
+
+      // 게임 참여 시도
+      const { error: updateError } = await supabase
         .from('games')
         .update({
           player2_id: user.id,
-          status: 'playing',
-          current_turn: user.id,
+          player2_ready: false
         })
-        .eq('id', gameId)
-        .eq('status', 'waiting'); // 대기 중인 게임만 참여 가능
+        .eq('id', gameId);
 
-      if (error) throw error;
+      if (updateError) {
+        console.error('게임 참여 업데이트 에러:', updateError);
+        alert('게임 참여에 실패했습니다.');
+        return;
+      }
+
       navigate(`/game/${gameId}`);
     } catch (error) {
-      console.error('Error joining game:', error);
+      console.error('게임 참여 에러:', error);
       alert('게임 참여에 실패했습니다.');
     }
   };
