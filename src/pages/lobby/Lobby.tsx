@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../../utils/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { Tables } from '../../utils/supabase';
+import type { Database } from '../../utils/database.types';
 
-type Game = Tables['games']['Row'];
+type Game = Database['public']['Tables']['games']['Row'];
 
-const Lobby: React.FC = () => {
+export default function Lobby() {
   const [games, setGames] = useState<Game[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
@@ -37,16 +37,27 @@ const Lobby: React.FC = () => {
 
   const loadGames = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: games, error } = await supabase
         .from('games')
-        .select('*, game_maps(*), profiles!games_player1_id_fkey(*)')
+        .select(`
+          *,
+          player1:profiles!games_player1_id_fkey (
+            username
+          ),
+          player2:profiles!games_player2_id_fkey (
+            username
+          )
+        `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading games:', error);
+        return;
+      }
 
       // 플레이어가 나간 게임이나 오래된 대기 게임을 필터링
       const now = new Date();
-      const filteredGames = (data || []).filter(game => {
+      const filteredGames = (games || []).filter(game => {
         const gameDate = new Date(game.created_at);
         const hoursDiff = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
         
@@ -75,7 +86,7 @@ const Lobby: React.FC = () => {
     } catch (error) {
       console.error('Error loading games:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -131,6 +142,7 @@ const Lobby: React.FC = () => {
         return;
       }
 
+      console.log('Joining game:', gameId);
       navigate(`/game/${gameId}`);
     } catch (error) {
       console.error('게임 참여 에러:', error);
@@ -138,7 +150,20 @@ const Lobby: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  const handleGameClick = (game: Game) => {
+    // 이미 참여한 게임이면 게임 페이지로 이동
+    if (game.player1_id === user?.id || game.player2_id === user?.id) {
+      navigate(`/game/${game.id}`);
+      return;
+    }
+
+    // 대기 중인 게임이면 참가
+    if (game.status === 'waiting' && !game.player2_id) {
+      joinGame(game.id);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
@@ -161,39 +186,30 @@ const Lobby: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {games.map((game) => (
-            <div
-              key={game.id}
-              className="bg-white overflow-hidden shadow rounded-lg"
+            <div 
+              key={game.id} 
+              className="border p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => handleGameClick(game)}
             >
-              <div className="px-4 py-5 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-lg font-medium text-gray-900">
-                    {game.status === 'waiting' ? '대기중' : '게임중'}
-                  </span>
-                  <span
-                    className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      game.status === 'waiting'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {game.status}
-                  </span>
+              <h3 className="text-xl font-bold mb-2">{game.title}</h3>
+              <div className="flex justify-between items-center">
+                <div>
+                  <p>방장: {game.player1?.username || '알 수 없음'}</p>
+                  <p>참가자: {game.player2?.username || '대기중'}</p>
                 </div>
-                <div className="mt-4">
-                  <button
-                    onClick={() => joinGame(game.id)}
-                    disabled={
-                      game.status !== 'waiting' || game.player1_id === user?.id
-                    }
-                    className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
-                      game.status === 'waiting' && game.player1_id !== user?.id
-                        ? 'bg-indigo-600 hover:bg-indigo-700'
-                        : 'bg-gray-300 cursor-not-allowed'
-                    }`}
-                  >
-                    {game.status === 'waiting' ? '참여하기' : '게임중'}
-                  </button>
+                <div>
+                  <p>상태: {game.status === 'waiting' ? '대기중' : game.status === 'playing' ? '게임중' : '종료'}</p>
+                  {user && game.status === 'waiting' && game.player1_id !== user.id && !game.player2_id && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        joinGame(game.id);
+                      }}
+                      className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                      참가하기
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -202,6 +218,4 @@ const Lobby: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default Lobby; 
+} 

@@ -61,45 +61,47 @@ export interface Database {
       games: {
         Row: {
           id: string
-          map_id: string
+          created_at: string
           player1_id: string
           player2_id: string | null
-          current_turn: string | null
+          status: 'waiting' | 'playing' | 'finished'
           game_state: Json
-          status: 'waiting' | 'ready' | 'playing' | 'finished'
-          winner_id: string | null
-          created_at: string
-          updated_at: string
+          map_id: string
+          title: string
           player1_ready: boolean
           player2_ready: boolean
+          winner_id: string | null
+          player1: { username: string } | null
+          player2: { username: string } | null
+          countdown_start: string | null
         }
         Insert: {
           id?: string
-          map_id: string
+          created_at?: string
           player1_id: string
           player2_id?: string | null
-          current_turn?: string | null
+          status?: 'waiting' | 'playing' | 'finished'
           game_state: Json
-          status?: 'waiting' | 'ready' | 'playing' | 'finished'
-          winner_id?: string | null
-          created_at?: string
-          updated_at?: string
+          map_id: string
+          title: string
           player1_ready?: boolean
           player2_ready?: boolean
+          winner_id?: string | null
+          countdown_start?: string | null
         }
         Update: {
           id?: string
-          map_id?: string
+          created_at?: string
           player1_id?: string
           player2_id?: string | null
-          current_turn?: string | null
+          status?: 'waiting' | 'playing' | 'finished'
           game_state?: Json
-          status?: 'waiting' | 'ready' | 'playing' | 'finished'
-          winner_id?: string | null
-          created_at?: string
-          updated_at?: string
+          map_id?: string
+          title?: string
           player1_ready?: boolean
           player2_ready?: boolean
+          winner_id?: string | null
+          countdown_start?: string | null
         }
       }
       chat_messages: {

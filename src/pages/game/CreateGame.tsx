@@ -9,6 +9,7 @@ type GameMap = Database['public']['Tables']['game_maps']['Row'];
 const CreateGame: React.FC = () => {
   const [maps, setMaps] = useState<GameMap[]>([]);
   const [selectedMap, setSelectedMap] = useState<string>('');
+  const [title, setTitle] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -43,6 +44,11 @@ const CreateGame: React.FC = () => {
         return;
       }
 
+      if (!title.trim()) {
+        alert('방제목을 입력해주세요.');
+        return;
+      }
+
       // 선택된 맵의 정보를 가져옵니다
       const selectedMapData = maps.find(map => map.id === selectedMap);
       if (!selectedMapData) {
@@ -53,10 +59,11 @@ const CreateGame: React.FC = () => {
       const { data, error } = await supabase
         .from('games')
         .insert({
+          title: title.trim(),
           map_id: selectedMap,
           player1_id: user!.id,
           game_state: {
-            board: Array(selectedMapData.board_size).fill(null).map(() => Array(selectedMapData.board_size).fill('')),
+            board: Array(selectedMapData.board_size).fill(null).map(() => Array(selectedMapData.board_size).fill(0)),
             currentPlayer: user!.id
           },
           status: 'waiting',
@@ -67,7 +74,9 @@ const CreateGame: React.FC = () => {
         .single();
 
       if (error) throw error;
+      
       if (data) {
+        console.log('Created game:', data);
         navigate(`/game/${data.id}`);
       } else {
         throw new Error('게임 데이터를 찾을 수 없습니다.');
@@ -99,6 +108,23 @@ const CreateGame: React.FC = () => {
       <div className="border-t border-gray-200">
         <div className="px-4 py-5 sm:p-6">
           <div className="grid grid-cols-1 gap-6">
+            <div>
+              <label
+                htmlFor="title"
+                className="block text-sm font-medium text-gray-700"
+              >
+                방제목
+              </label>
+              <input
+                type="text"
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                maxLength={50}
+                placeholder="방제목을 입력하세요"
+                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              />
+            </div>
             <div>
               <label
                 htmlFor="map"
