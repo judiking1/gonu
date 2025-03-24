@@ -54,11 +54,11 @@ const Game = () => {
 
   if (!game) {
     return (
-      <div className="text-center py-8">
-        <p className="text-lg text-gray-600">게임을 찾을 수 없습니다.</p>
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-100">
+        <p className="text-lg text-gray-600 mb-4">게임을 찾을 수 없습니다.</p>
         <button
           onClick={() => navigate('/lobby')}
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
         >
           로비로 돌아가기
         </button>
@@ -67,8 +67,8 @@ const Game = () => {
   }
 
   return (
-    <div className='flex flex-row gap-4 p-4'>
-      <div className="container mx-auto px-4 py-8">
+    <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gray-50 min-h-screen">
+      <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
         <GameHeader game={game} user={user} />
         <GameReadyStatus game={game} isReady={isReady} countdown={countdown} />
         <GameBoard game={game} user={user} onPlaceStone={handlePlaceStone} />
@@ -80,9 +80,9 @@ const Game = () => {
           onLeave={leaveGame}
         />
       </div>
-        <div className="w-100">
-          <GameChat gameId={game.id} />
-        </div>
+      <div className="lg:w-96 w-full bg-white rounded-lg shadow-lg p-4">
+        <GameChat gameId={game.id} />
+      </div>
     </div>
   );
 };

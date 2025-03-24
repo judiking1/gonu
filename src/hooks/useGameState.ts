@@ -2,16 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { useAuthStore } from '../stores/authStore';
-import type { Game, GameMap, GameState, GameRules } from '../types/game';
+import type { Game, GameState } from '../types/game';
 
 export const useGameState = (gameId: string | undefined) => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [game, setGame] = useState<Game | null>(null);
-  const [gameMap, setGameMap] = useState<GameMap | null>(null);
   const [loading, setLoading] = useState(true);
   const [gameState, setGameState] = useState<GameState | null>(null);
-  const [gameRules, setGameRules] = useState<GameRules | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const loadGame = async () => {
@@ -90,10 +88,8 @@ export const useGameState = (gameId: string | undefined) => {
   return {
     game,
     setGame,
-    gameMap,
     gameState,
     setGameState,
-    gameRules,
     loading,
     isReady,
     setIsReady,
