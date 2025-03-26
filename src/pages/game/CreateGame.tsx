@@ -43,28 +43,47 @@ const CreateGame: React.FC = () => {
         alert('맵을 선택해주세요.');
         return;
       }
-
       if (!title.trim()) {
         alert('방제목을 입력해주세요.');
         return;
       }
+      if (!user) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
 
-      // 선택된 맵의 정보를 가져옵니다
-      const selectedMapData = maps.find(map => map.id === selectedMap);
+      // 선택된 맵 정보
+      const selectedMapData = maps.find(m => m.id === selectedMap);
       if (!selectedMapData) {
         alert('맵 정보를 찾을 수 없습니다.');
         return;
       }
+
+      // map_data 안의 nodes를 이용하여 occupant 초기화
+      // occupant[node.id] = 0 (빈 상태)
+      let occupant: Record<string, number> = {};
+      const mapData = selectedMapData.map_data as any; 
+      // map_data가 null일 수도 있으니 유의
+
+      if (mapData?.nodes && Array.isArray(mapData.nodes)) {
+        mapData.nodes.forEach((node: any) => {
+          occupant[node.id] = 0; // 모든 노드 빈칸
+        });
+      }
+
+      // 흑돌, 백돌 배치는 이후 로직에서 자유롭게 결정 가능
+      // 여기선 모두 빈칸 상태로 시작
 
       const { data, error } = await supabase
         .from('games')
         .insert({
           title: title.trim(),
           map_id: selectedMap,
-          player1_id: user!.id,
+          player1_id: user.id,
+          // node 기반 occupant 구조
           game_state: {
-            board: Array(selectedMapData.board_size).fill(null).map(() => Array(selectedMapData.board_size).fill(0)),
-            currentPlayer: user!.id
+            occupant,          // { "n0,0": 0, "n1,0": 0, ... }
+            currentPlayer: user.id
           },
           status: 'waiting',
           player1_ready: false,
@@ -74,13 +93,10 @@ const CreateGame: React.FC = () => {
         .single();
 
       if (error) throw error;
-      
-      if (data) {
-        console.log('Created game:', data);
-        navigate(`/game/${data.id}`);
-      } else {
-        throw new Error('게임 데이터를 찾을 수 없습니다.');
-      }
+      if (!data) throw new Error('게임 데이터를 찾을 수 없습니다.');
+
+      console.log('Created game:', data);
+      navigate(`/game/${data.id}`);
     } catch (error) {
       console.error('게임 생성 에러:', error);
       alert('게임 생성에 실패했습니다.');
@@ -161,4 +177,4 @@ const CreateGame: React.FC = () => {
   );
 };
 
-export default CreateGame; 
+export default CreateGame;

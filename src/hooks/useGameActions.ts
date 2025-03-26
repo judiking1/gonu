@@ -154,23 +154,51 @@ export const useGameActions = ({
     }
   };
 
-  const handlePlaceStone = async (row: number, col: number) => {
-    if (!game || !user || game.status !== 'playing') return;
+   // occupant 기반으로 돌 놓기
+   const handlePlaceStone = async (nodeId: string) => {
+    if (!game || !user) return;
+    if (game.status !== 'playing') return;
+
+    // 현재 턴인지 체크
+    if (game.current_player_id !== user.id) {
+      alert('상대 턴입니다!');
+      return;
+    }
 
     try {
-      const newBoard = [...game.game_state.board];
-      const playerNumber = game.player1_id === user.id ? 1 : 2;
-      newBoard[row][col] = playerNumber;
+      // occupant 복사
+      const occupant = { ...game.game_state.occupant }; 
+      // occupant[nodeId] = 0,1,2 ...
+      if (occupant[nodeId] && occupant[nodeId] !== 0) {
+        alert('이미 돌이 있습니다.');
+        return;
+      }
 
+      // 돌 놓기
+      const myStone = (game.player1_id === user.id) ? 1 : 2;
+      occupant[nodeId] = myStone;
+
+      // 다음 턴
+      const nextPlayer = (game.player1_id === user.id) 
+        ? game.player2_id 
+        : game.player1_id;
+
+      // DB 업데이트
       const { error } = await supabase
         .from('games')
         .update({
-          board: newBoard,
-          current_player_id: game.player1_id === user.id ? game.player2_id : game.player1_id
+          game_state: {
+            ...game.game_state,
+            occupant
+          },
+          current_player_id: nextPlayer
         })
         .eq('id', game.id);
 
       if (error) throw error;
+
+      // 승리 판단이 필요하면, 여기서 checkWinCondition(occupant, myStone) 호출
+
     } catch (error) {
       console.error('돌 놓기 실패:', error);
     }

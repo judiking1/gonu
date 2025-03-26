@@ -21,7 +21,7 @@ export interface Game {
   countdown_start: string | null;
   current_player_id: string | null;
   game_state: {
-    board: number[][];
+    occupant: {[key: string]: number};
     currentPlayer: string | null;
   };
   game_maps: GameMap | null;

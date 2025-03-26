@@ -5,7 +5,11 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
-
+type Node = {
+  x: number;
+  y: number;
+  id: string;
+}
 export interface Database {
   public: {
     Tables: {
@@ -37,25 +41,38 @@ export interface Database {
           id: string
           name: string
           description: string
-          board_size: number
           rules: Json
           created_at: string
+          map_data: {
+            edges: [string, string][]; // 각 요소가 [nodeId1, nodeId2] 형태의 튜플인 배열
+            nodes: Node[]; // x, y 좌표와 id를 가진 객체들의 배열
+            forbidden_moves: {
+              to: string;
+              from: string;
+              piece: 'black' | 'white'; // 또는 string (만약 다른 piece 종류가 있을 수 있다면)
+              description: string;
+            }[]; // 금지된 움직임 정보를 담는 객체들의 배열
+            initial_positions: {
+              black: Node[]; // 흑돌의 초기 위치 (node id 배열)
+              white: Node[]; // 백돌의 초기 위치 (node id 배열)
+            };
+          }
         }
         Insert: {
           id?: string
           name: string
           description: string
-          board_size: number
           rules: Json
           created_at?: string
+          map_data: Json
         }
         Update: {
           id?: string
           name?: string
           description?: string
-          board_size?: number
           rules?: Json
           created_at?: string
+          map_data: Json
         }
       }
       games: {
