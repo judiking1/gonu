@@ -48,22 +48,22 @@ export const useGameActions = ({
 
   async function resetGameStateForRematch() {
     if (!game) return;
-  
+
     // 예: 사방고누 가정
     // occupant 노드 전부 0, blackCount=0, whiteCount=0, phase='placement'
     const occupant = { ...game.game_state.occupant };
-    Object.keys(occupant).forEach(nodeId => {
+    Object.keys(occupant).forEach((nodeId) => {
       occupant[nodeId] = 0;
     });
-  
+
     const newGameState = {
       ...game.game_state,
       occupant,
       phase: 'placement',
       blackCount: 0,
-      whiteCount: 0
+      whiteCount: 0,
     };
-  
+
     // DB 업데이트
     const { error } = await supabase
       .from('games')
@@ -72,10 +72,10 @@ export const useGameActions = ({
         status: 'waiting',
         current_turn: game.player1_id, // 흑이 선공, 혹은 null
         countdown_start: null,
-        game_state: newGameState
+        game_state: newGameState,
       })
       .eq('id', game.id);
-  
+
     if (error) {
       console.error('게임 리셋 실패:', error);
     }
@@ -254,7 +254,7 @@ export const useGameActions = ({
   };
 
   // occupant 기반으로 돌 놓기
- async function placeStone_Sabang(nodeId: string) {
+  async function placeStone_Sabang(nodeId: string) {
     const { occupant, phase, blackCount, whiteCount } = game!.game_state;
     // 현재 턴인지 체크
     if (game!.current_turn !== user!.id) {
@@ -334,13 +334,15 @@ export const useGameActions = ({
     } catch (err) {
       console.error('사방고누 돌 놓기 실패:', err);
     }
-  };
+  }
 
   async function placeStone_Umul(nodeId: string) {
     // 우물고누는 곧바로 이동 단계?
     // 혹은 occupant[nodeId] = myStone
     // 여기선 예시로 "움직이는" 게임이라 가정
-    alert('우물고누는 이동형 게임입니다. 별도 로직 필요!');
+    alert(
+      `우물고누는 이동형 게임입니다. 별도 로직 필요! 선택된 노드: ${nodeId}`
+    );
     // 구현 시 occupant/nodeId 를 업데이트 or from->to 이동
   }
 
@@ -350,9 +352,8 @@ export const useGameActions = ({
   async function placeStone_Hobak(nodeId: string) {
     // 호박고누 역시 "상대방을 포위하여 움직이지 못하게" 등 규칙
     // 여기서 occupant 업데이트 or 이동 로직
-    alert('호박고누 로직을 구현해주세요!');
+    alert(`호박고누 로직을 구현해주세요! 선택된 노드: ${nodeId}`);
   }
-
 
   return {
     handleReady,
