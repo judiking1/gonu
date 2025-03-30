@@ -25,7 +25,9 @@ export const useCountdown = (game: Game | null) => {
           player1_ready: false,
           player2_ready: false,
           winner_id: null,
-          countdown_start: null
+          countdown_start: null,
+          // 흑이 먼저 두도록
+          current_turn: game.player1_id,
         })
         .eq('id', game.id);
 

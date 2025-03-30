@@ -12,7 +12,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   user,
   onPlaceStone,
 }) => {
-  const isMyTurn = game.current_player_id === user?.id;
+  const isMyTurn = game.current_turn === user?.id;
   const canPlay = game.status === 'playing' && isMyTurn;
 
   // map_data에 node, edge가 있다고 가정

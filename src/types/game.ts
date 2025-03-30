@@ -19,10 +19,13 @@ export interface Game {
   player2_ready: boolean;
   winner_id: string | null;
   countdown_start: string | null;
-  current_player_id: string | null;
+  current_turn: string | null;
   game_state: {
-    occupant: {[key: string]: number};
+    occupant: { [key: string]: number };
     currentPlayer: string | null;
+    phase: 'placement';
+    blackCount: 0;
+    whiteCount: 0;
   };
   game_maps: GameMap | null;
 }
@@ -45,4 +48,4 @@ export interface GameState {
   game: Game | null;
 }
 
-export type GameStatus = 'waiting' | 'playing' | 'finished'; 
+export type GameStatus = 'waiting' | 'playing' | 'finished';

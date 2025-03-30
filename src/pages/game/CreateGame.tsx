@@ -83,7 +83,10 @@ const CreateGame: React.FC = () => {
           // node 기반 occupant 구조
           game_state: {
             occupant,          // { "n0,0": 0, "n1,0": 0, ... }
-            currentPlayer: user.id
+            currentPlayer: user.id,
+            phase:'placement',
+            blackCount: 0,
+            whiteCount: 0
           },
           status: 'waiting',
           player1_ready: false,
