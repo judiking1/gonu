@@ -32,7 +32,7 @@ export class SabangLogic implements GameLogic {
       phase: newPhase,
       blackCount: newBlackCount,
       whiteCount: newWhiteCount,
-      currentPlayer: nextPlayer, // currentPlayer를 명시적으로 업데이트
+      currentPlayer: nextPlayer,
     };
   }
 
@@ -44,7 +44,7 @@ export class SabangLogic implements GameLogic {
     if (phase !== 'movement') return { valid: false, message: '배치 단계가 끝나지 않았습니다 (movement 아님).' };
     if (occupant[fromNode] !== myStone) return { valid: false, message: '자신의 돌이 아닙니다.' };
     if (occupant[toNode] !== 0) return { valid: false, message: '이미 돌이 있거나 이동 불가.' };
-    if (!this.isAdjacentNode(fromNode, toNode)) return { valid: false, message: '인접 노드만 이동 가능합니다.' };
+    if (!this.isConnectedNode(fromNode, toNode, game)) return { valid: false, message: '선으로 연결된 노드만 이동 가능합니다.' };
 
     return { valid: true };
   }
@@ -59,10 +59,10 @@ export class SabangLogic implements GameLogic {
 
     return {
       occupant: newOccupant,
-      phase, // phase는 movement 상태에서 변경 없음
+      phase,
       blackCount,
       whiteCount,
-      currentPlayer: nextPlayer, // currentPlayer를 명시적으로 업데이트
+      currentPlayer: nextPlayer,
     };
   }
 
@@ -83,11 +83,11 @@ export class SabangLogic implements GameLogic {
     );
   }
 
-  private isAdjacentNode(fromNode: string, toNode: string): boolean {
-    const [fx, fy] = fromNode.replace('n', '').split(',').map(Number);
-    const [tx, ty] = toNode.replace('n', '').split(',').map(Number);
-    const dx = Math.abs(fx - tx);
-    const dy = Math.abs(fy - ty);
-    return dx <= 1 && dy <= 1 && (dx + dy) !== 0;
+  private isConnectedNode(fromNode: string, toNode: string, game: Game): boolean {
+    const edges = game.game_maps?.map_data.edges || [];
+    return edges.some(
+      ([startId, endId]) =>
+        (startId === fromNode && endId === toNode) || (startId === toNode && endId === fromNode)
+    );
   }
 }
