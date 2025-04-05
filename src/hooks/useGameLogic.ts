@@ -1,5 +1,5 @@
 // src/hooks/useGameLogic.ts
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { supabase } from '../utils/supabase';
 import type { Game } from '../types/game';
 import { createGameLogic } from '../gameLogic/factory';
@@ -11,6 +11,7 @@ interface UseGameLogicProps {
 
 export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const gameLogic = useMemo(() => createGameLogic(game?.game_maps?.name || '사방고누'), [game?.game_maps?.name]);
 
   if (!game || !user) {
     return {
@@ -21,7 +22,6 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
     };
   }
 
-  const gameLogic = createGameLogic(game.game_maps?.name || '사방고누'); // 기본값으로 사방고누
   const isMyTurn = game.current_turn === user.id;
   const canPlay = game.status === 'playing' && isMyTurn;
   const occupant = game.game_state.occupant;
@@ -106,7 +106,7 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
         }
       } else {
         if (selectedNode === nodeId) {
-          setSelectedNode(null); // 동일 노드 클릭 시 선택 취소
+          setSelectedNode(null);
         } else {
           handleMoveStone(selectedNode, nodeId);
           setSelectedNode(null);

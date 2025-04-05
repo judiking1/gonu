@@ -53,8 +53,8 @@ export interface Database {
               description: string;
             }[]; // 금지된 움직임 정보를 담는 객체들의 배열
             initial_positions: {
-              black: Node[]; // 흑돌의 초기 위치 (node id 배열)
-              white: Node[]; // 백돌의 초기 위치 (node id 배열)
+              black: string[]; // 흑돌의 초기 위치 (node id 배열)
+              white: string[]; // 백돌의 초기 위치 (node id 배열)
             };
           }
         }

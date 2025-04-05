@@ -1,8 +1,11 @@
+// src/pages/CreateGame.tsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../utils/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import type { Database } from '../../utils/database.types';
+import { UmulLogic } from '../../gameLogic/umul';
+import { SabangLogic } from '../../gameLogic/sabang';
 
 type GameMap = Database['public']['Tables']['game_maps']['Row'];
 
@@ -52,45 +55,40 @@ const CreateGame: React.FC = () => {
         return;
       }
 
-      // 선택된 맵 정보
-      const selectedMapData = maps.find(m => m.id === selectedMap);
+      const selectedMapData = maps.find((m) => m.id === selectedMap);
       if (!selectedMapData) {
         alert('맵 정보를 찾을 수 없습니다.');
         return;
       }
 
-      // map_data 안의 nodes를 이용하여 occupant 초기화
-      // occupant[node.id] = 0 (빈 상태)
-      let occupant: Record<string, number> = {};
-      const mapData = selectedMapData.map_data as any; 
-      // map_data가 null일 수도 있으니 유의
+      // 게임 기본 데이터 (game_maps 컬럼 제거)
+      const gameData = {
+        title: title.trim(),
+        map_id: selectedMap,
+        player1_id: user.id,
+        status: 'waiting' as const,
+        player1_ready: false,
+        player2_ready: false,
+      };
 
-      if (mapData?.nodes && Array.isArray(mapData.nodes)) {
-        mapData.nodes.forEach((node: any) => {
-          occupant[node.id] = 0; // 모든 노드 빈칸
-        });
-      }
+      // game_maps 데이터를 포함한 임시 Game 객체 생성
+      const tempGame = {
+        ...gameData,
+        game_maps: selectedMapData,
+      };
 
-      // 흑돌, 백돌 배치는 이후 로직에서 자유롭게 결정 가능
-      // 여기선 모두 빈칸 상태로 시작
+      // 맵 이름에 따라 초기 game_state 설정
+      const initialGameState =
+        selectedMapData.name === '우물고누'
+          ? UmulLogic.initializeGameState(tempGame as any)
+          : SabangLogic.initializeGameState(tempGame as any);
 
       const { data, error } = await supabase
         .from('games')
         .insert({
-          title: title.trim(),
-          map_id: selectedMap,
-          player1_id: user.id,
-          // node 기반 occupant 구조
-          game_state: {
-            occupant,          // { "n0,0": 0, "n1,0": 0, ... }
-            currentPlayer: user.id,
-            phase:'placement',
-            blackCount: 0,
-            whiteCount: 0
-          },
-          status: 'waiting',
-          player1_ready: false,
-          player2_ready: false,
+          ...gameData,
+          game_state: initialGameState,
+          current_turn: user.id,
         })
         .select()
         .single();
@@ -117,9 +115,7 @@ const CreateGame: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto bg-white shadow overflow-hidden sm:rounded-lg">
       <div className="px-4 py-5 sm:px-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">
-          새 게임 만들기
-        </h3>
+        <h3 className="text-lg leading-6 font-medium text-gray-900">새 게임 만들기</h3>
         <p className="mt-1 max-w-2xl text-sm text-gray-500">
           게임 맵을 선택하고 게임을 시작하세요.
         </p>
@@ -128,10 +124,7 @@ const CreateGame: React.FC = () => {
         <div className="px-4 py-5 sm:p-6">
           <div className="grid grid-cols-1 gap-6">
             <div>
-              <label
-                htmlFor="title"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">
                 방제목
               </label>
               <input
@@ -145,10 +138,7 @@ const CreateGame: React.FC = () => {
               />
             </div>
             <div>
-              <label
-                htmlFor="map"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="map" className="block text-sm font-medium text-gray-700">
                 맵 선택
               </label>
               <select
@@ -164,7 +154,6 @@ const CreateGame: React.FC = () => {
                 ))}
               </select>
             </div>
-
             <div className="flex justify-end">
               <button
                 onClick={handleCreateGame}

@@ -2,6 +2,8 @@
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import type { Game } from '../types/game';
+import { UmulLogic } from '../gameLogic/umul';
+import { SabangLogic } from '../gameLogic/sabang';
 
 interface UseGameActionsProps {
   game: Game | null;
@@ -21,19 +23,17 @@ export const useGameActions = ({
   async function resetGameStateForRematch() {
     if (!game) return;
 
-    const occupant = { ...game.game_state.occupant };
-    Object.keys(occupant).forEach((nodeId) => {
-      occupant[nodeId] = 0;
-    });
-
-    const newGameState = {
-      ...game.game_state,
-      occupant,
-      phase: 'placement',
-      blackCount: 0,
-      whiteCount: 0,
-      currentPlayer: game.player1_id,
+    // game_maps 데이터를 포함한 임시 Game 객체 생성
+    const tempGame = {
+      ...game,
+      game_maps: game.game_maps,
     };
+
+    // 맵 이름에 따라 초기 game_state 설정
+    const initialGameState =
+      game.game_maps!.name === '우물고누'
+        ? UmulLogic.initializeGameState(tempGame as any)
+        : SabangLogic.initializeGameState(tempGame as any);
 
     const { error } = await supabase
       .from('games')
@@ -42,7 +42,7 @@ export const useGameActions = ({
         status: 'waiting',
         current_turn: game.player1_id,
         countdown_start: null,
-        game_state: newGameState,
+        game_state: initialGameState,
       })
       .eq('id', game.id);
 
@@ -111,12 +111,17 @@ export const useGameActions = ({
   const handleSurrender = async () => {
     if (!game || !user) return;
 
-    if (!window.confirm('정말 기권하시겠습니까? 상대방의 승리로 게임이 종료됩니다.')) {
+    if (
+      !window.confirm(
+        '정말 기권하시겠습니까? 상대방의 승리로 게임이 종료됩니다.'
+      )
+    ) {
       return;
     }
 
     try {
-      const winnerId = game.player1_id === user.id ? game.player2_id : game.player1_id;
+      const winnerId =
+        game.player1_id === user.id ? game.player2_id : game.player1_id;
       await supabase
         .from('games')
         .update({
@@ -136,7 +141,9 @@ export const useGameActions = ({
 
     if (
       game.status === 'playing' &&
-      !window.confirm('게임 진행 중에 나가시면 기권 처리됩니다. 정말 나가시겠습니까?')
+      !window.confirm(
+        '게임 진행 중에 나가시면 기권 처리됩니다. 정말 나가시겠습니까?'
+      )
     ) {
       return;
     }

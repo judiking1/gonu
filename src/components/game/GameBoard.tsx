@@ -43,9 +43,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         if (!startNode || !endNode) return null;
 
         const x1 = startNode.x * SPACING + 50;
-        const y1 = startNode.y * SPACING + 50;
+        const y1 = (maxY - startNode.y) * SPACING + 50;
         const x2 = endNode.x * SPACING + 50;
-        const y2 = endNode.y * SPACING + 50;
+        const y2 = (maxY - endNode.y) * SPACING + 50;
         const dx = x2 - x1;
         const dy = y2 - y1;
         const length = Math.sqrt(dx * dx + dy * dy);

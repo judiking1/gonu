@@ -90,4 +90,19 @@ export class SabangLogic implements GameLogic {
         (startId === fromNode && endId === toNode) || (startId === toNode && endId === fromNode)
     );
   }
+
+  static initializeGameState(game: Game): Game["game_state"] {
+    const occupant: { [key: string]: number } = {};
+    game.game_maps?.map_data.nodes.forEach((node) => {
+      occupant[node.id] = 0; // 모든 노드를 0으로 초기화
+    });
+
+    return {
+      occupant,
+      phase: 'placement', // 사방고누는 placement부터 시작
+      blackCount: 0,
+      whiteCount: 0,
+      currentPlayer: game.player1_id,
+    };
+  }
 }
