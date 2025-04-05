@@ -355,10 +355,123 @@ export const useGameActions = ({
     alert(`호박고누 로직을 구현해주세요! 선택된 노드: ${nodeId}`);
   }
 
+  const handleMoveStone = (fromNode: string, toNode: string) => {
+    if (!game || !user) return;
+    if (game.status !== 'playing') {
+      alert('게임이 시작되지 않았습니다.');
+      return;
+    }
+
+    const mapName = game.game_maps?.name;
+    switch (mapName) {
+      case '사방고누':
+        moveStone_Sabang(fromNode, toNode);
+        break;
+      case '우물고누':
+        moveStone_Umul(fromNode, toNode);
+        break;
+      case '호박고누':
+        moveStone_Hobak(fromNode, toNode);
+        break;
+      default:
+        alert('알 수 없는 게임입니다.');
+        break;
+    }
+  };
+
+  async function moveStone_Sabang(fromNode: string, toNode: string) {
+    // 1) phase === 'movement'인지 체크
+    if (game!.game_state.phase !== 'movement') {
+      alert('배치 단계가 끝나지 않았습니다 (movement 아님).');
+      return;
+    }
+
+    // 2) 내 돌인지 확인
+    const occupant = { ...game!.game_state.occupant };
+    const isPlayer1 = (game!.player1_id === user!.id);
+    const myStone = isPlayer1 ? 1 : 2;
+
+    if (occupant[fromNode] !== myStone) {
+      alert('자신의 돌이 아닙니다.');
+      return;
+    }
+    if (occupant[toNode] !== 0) {
+      alert('이미 돌이 있거나 이동 불가.');
+      return;
+    }
+
+    // 3) 인접 노드인지 검사 (사방고누는 3x3이므로 상하좌우,대각? 규칙에 따라)
+    if (!isAdjacentNode(fromNode, toNode)) {
+      alert('인접 노드만 이동 가능합니다.');
+      return;
+    }
+
+    // 4) 이동
+    occupant[fromNode] = 0;
+    occupant[toNode] = myStone;
+
+    // 5) 턴 교체
+    const nextTurn = isPlayer1 ? game!.player2_id : game!.player1_id;
+
+    // 6) 승리 검사
+    const isWin = checkWinCondition_Sabang(occupant, myStone);
+    let newStatus = game!.status;
+    let newWinner = null;
+    if (isWin) {
+      newStatus = 'finished';
+      newWinner = user!.id;
+    }
+
+    // 7) DB 업데이트
+    try {
+      const { error } = await supabase
+        .from('games')
+        .update({
+          status: newStatus,
+          winner_id: newWinner,
+          current_turn: nextTurn,
+          game_state: {
+            ...game!.game_state,
+            occupant,
+          }
+        })
+        .eq('id', game!.id);
+      if (error) throw error;
+
+    } catch (err) {
+      console.error('돌 이동 실패:', err);
+    }
+  }
+
+  // #2. 우물고누, 호박고누 로직
+  async function moveStone_Umul(fromNode: string, toNode: string) {
+    // 예: 우물고누는 특정 선만 이동 가능, 우물 표시는 막힘, etc.
+    alert(`우물고누 이동: ${fromNode}→${toNode} (미구현)`);
+  }
+
+  async function moveStone_Hobak(fromNode: string, toNode: string) {
+    // 예: 호박고누는 점프, 포획 규칙...
+    alert(`호박고누 이동: ${fromNode}→${toNode} (미구현)`);
+  }
+
+  function isAdjacentNode(fromNode: string, toNode: string) {
+    // 예: 'n0,0' ~ 'n2,2'
+    // 인덱스 파싱 -> 상하좌우 or 대각선
+    const [fx, fy] = fromNode.replace('n','').split(',').map(Number);
+    const [tx, ty] = toNode.replace('n','').split(',').map(Number);
+    const dx = Math.abs(fx - tx);
+    const dy = Math.abs(fy - ty);
+
+    // 사방고누 예시: 한 칸 이동(상하좌우+대각 가능?)
+    // 여기선 상하좌우+대각(최대 1칸 이동)라고 가정:
+    return (dx <= 1 && dy <= 1 && (dx+dy !== 0));
+  }
+  
   return {
     handleReady,
     handleSurrender,
     leaveGame,
     handlePlaceStone,
+    handleMoveStone
   };
 };

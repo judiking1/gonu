@@ -23,7 +23,7 @@ export interface Game {
   game_state: {
     occupant: { [key: string]: number };
     currentPlayer: string | null;
-    phase: 'placement';
+    phase: 'placement'|'movement';
     blackCount: 0;
     whiteCount: 0;
   };

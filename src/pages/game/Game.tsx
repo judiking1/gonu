@@ -25,7 +25,7 @@ const Game = () => {
 
   const { game, isReady, setGame, setGameState, setIsReady, loading } =
     useGameState(gameId);
-  const { handleReady, handleSurrender, leaveGame, handlePlaceStone } =
+  const { handleReady, handleSurrender, leaveGame, handlePlaceStone,handleMoveStone } =
     useGameActions({
       game,
       user,
@@ -71,7 +71,7 @@ const Game = () => {
       <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
         <GameHeader game={game} user={user} />
         <GameReadyStatus game={game} isReady={isReady} countdown={countdown} />
-        <GameBoard game={game} user={user}  onPlaceStone={(nodeId) => handlePlaceStone(nodeId)}  />
+        <GameBoard game={game} user={user}  onPlaceStone={handlePlaceStone} onMoveStone={handleMoveStone}  />
         <GameActions
           game={game}
           isReady={isReady}
