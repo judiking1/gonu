@@ -24,8 +24,8 @@ export interface Game {
     occupant: { [key: string]: number };
     currentPlayer: string | null;
     phase: 'placement'|'movement';
-    blackCount: 0;
-    whiteCount: 0;
+    blackCount: number;
+    whiteCount: number;
   };
   game_maps: GameMap | null;
 }
