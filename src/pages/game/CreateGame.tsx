@@ -6,6 +6,7 @@ import { useAuthStore } from '../../stores/authStore';
 import type { Database } from '../../utils/database.types';
 import { UmulLogic } from '../../gameLogic/umul';
 import { SabangLogic } from '../../gameLogic/sabang';
+import { HobakLogic } from '../../gameLogic/hobak';
 
 type GameMap = Database['public']['Tables']['game_maps']['Row'];
 
@@ -78,10 +79,20 @@ const CreateGame: React.FC = () => {
       };
 
       // 맵 이름에 따라 초기 game_state 설정
-      const initialGameState =
-        selectedMapData.name === '우물고누'
-          ? UmulLogic.initializeGameState(tempGame as any)
-          : SabangLogic.initializeGameState(tempGame as any);
+      let initialGameState;
+      switch (selectedMapData.name) {
+        case '우물고누':
+          initialGameState = UmulLogic.initializeGameState(tempGame as any);
+          break;
+        case '사방고누':
+          initialGameState = SabangLogic.initializeGameState(tempGame as any);
+          break;
+        case '호박고누':
+          initialGameState = HobakLogic.initializeGameState(tempGame as any);
+          break;
+        default:
+          throw new Error(`알 수 없는 게임 맵: ${selectedMapData.name}`);
+      }
 
       const { data, error } = await supabase
         .from('games')

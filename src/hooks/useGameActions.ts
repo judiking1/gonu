@@ -4,6 +4,7 @@ import { supabase } from '../utils/supabase';
 import type { Game } from '../types/game';
 import { UmulLogic } from '../gameLogic/umul';
 import { SabangLogic } from '../gameLogic/sabang';
+import { HobakLogic } from '../gameLogic/hobak';
 
 interface UseGameActionsProps {
   game: Game | null;
@@ -30,10 +31,20 @@ export const useGameActions = ({
     };
 
     // 맵 이름에 따라 초기 game_state 설정
-    const initialGameState =
-      game.game_maps!.name === '우물고누'
-        ? UmulLogic.initializeGameState(tempGame as any)
-        : SabangLogic.initializeGameState(tempGame as any);
+    let initialGameState;
+    switch (game.game_maps!.name) {
+      case '우물고누':
+        initialGameState = UmulLogic.initializeGameState(tempGame as any);
+        break;
+      case '사방고누':
+        initialGameState = SabangLogic.initializeGameState(tempGame as any);
+        break;
+      case '호박고누':
+        initialGameState = HobakLogic.initializeGameState(tempGame as any);
+        break;
+      default:
+        throw new Error(`알 수 없는 게임 맵: ${game.game_maps!.name}`);
+    }
 
     const { error } = await supabase
       .from('games')
