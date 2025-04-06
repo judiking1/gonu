@@ -1,15 +1,16 @@
 // src/gameLogic/umul.ts
 import { Game } from '../types/game';
 import { GameLogic } from './types';
+import { checkNoMovesWinCondition } from './utils';
 
 export class UmulLogic implements GameLogic {
   private moveCount: number = 0; // 첫 수 제한을 위한 카운터
 
-  canPlaceStone(nodeId: string, game: Game, userId: string) {
+  canPlaceStone(_nodeId: string, _game: Game, _userId: string) {
     return { valid: false, message: '우물고누는 돌 배치 단계가 없습니다.' };
   }
 
-  placeStone(nodeId: string, game: Game, userId: string): Game['game_state'] {
+  placeStone(_nodeId: string, game: Game, _userId: string): Game['game_state'] {
     return game.game_state;
   }
 
@@ -51,7 +52,7 @@ export class UmulLogic implements GameLogic {
     game: Game,
     userId: string
   ): Game['game_state'] {
-    const { occupant, phase, blackCount, whiteCount, currentPlayer } =
+    const { occupant, phase, blackCount, whiteCount } =
       game.game_state;
     const isPlayer1 = game.player1_id === userId;
     const myStone = isPlayer1 ? 1 : 2;
@@ -69,19 +70,8 @@ export class UmulLogic implements GameLogic {
     };
   }
 
-  checkWinCondition(
-    gameState: Game['game_state'],
-    playerStone: number
-  ): boolean {
-    const opponentStone = playerStone === 1 ? 2 : 1;
-    const opponentNodes = Object.keys(gameState.occupant).filter(
-      (nodeId) => gameState.occupant[nodeId] === opponentStone
-    );
-
-    // 상대방 돌이 이동 가능한 노드가 하나도 없으면 승리
-    return opponentNodes.every(
-      (nodeId) => !this.hasMovableNode(nodeId, gameState)
-    );
+  checkWinCondition(gameState: Game['game_state'], playerStone: number, edges:[string,string][]): boolean {
+    return checkNoMovesWinCondition(gameState, playerStone, edges);
   }
 
   private isConnectedNode(
@@ -95,29 +85,6 @@ export class UmulLogic implements GameLogic {
         (startId === fromNode && endId === toNode) ||
         (startId === toNode && endId === fromNode)
     );
-  }
-
-  private hasMovableNode(
-    nodeId: string,
-    gameState: Game['game_state']
-  ): boolean {
-    const edges = [
-      ['n1,0', 'n0,1'],
-      ['n0,1', 'n1,1'],
-      ['n0,1', 'n1,2'],
-      ['n1,0', 'n1,1'],
-      ['n1,1', 'n1,2'],
-      ['n1,0', 'n2,1'],
-      ['n1,1', 'n2,1'],
-    ];
-    const occupant = gameState.occupant;
-
-    // 현재 노드와 연결된 노드 중 빈 노드가 있는지 확인
-    return edges.some(([startId, endId]) => {
-      if (startId === nodeId && occupant[endId] === 0) return true;
-      if (endId === nodeId && occupant[startId] === 0) return true;
-      return false;
-    });
   }
 
   static initializeGameState(game: Game): Game['game_state'] {

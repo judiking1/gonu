@@ -27,7 +27,7 @@ export interface Game {
     blackCount: number;
     whiteCount: number;
   };
-  game_maps: GameMap | null;
+  game_maps: GameMap;
 }
 
 export type GameMap = Database['public']['Tables']['game_maps']['Row'];
