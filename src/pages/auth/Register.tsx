@@ -39,7 +39,7 @@ const Register: React.FC = () => {
   
     try {
       await signUp(email, password, username);
-      alert('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+      alert('회원가입이 완료되었습니다. 이메일로 전송된 인증 링크를 클릭하여 계정을 활성화한 후 로그인해주세요.');
       navigate('/login');
     } catch (error) {
       alert('회원가입에 실패했습니다. 입력하신 정보를 확인해주세요.');
