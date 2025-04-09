@@ -110,9 +110,10 @@ export class HobakLogic implements GameLogic {
   checkWinCondition(
     gameState: Game['game_state'],
     playerStone: number,
-    edges: [string, string][]
+    edges: [string, string][],
+    initialPositions?: { black: string[]; white: string[] }
   ): boolean {
-    return checkNoMovesWinCondition(gameState, playerStone, edges);
+    return checkNoMovesWinCondition(gameState, playerStone, edges, initialPositions);
   }
 
   private isConnectedNode(

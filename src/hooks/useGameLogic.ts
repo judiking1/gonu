@@ -73,7 +73,7 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
 
     const newGameState = gameLogic.moveStone(fromNode, toNode, game, user.id);
     const myStone = game.player1_id === user.id ? 1 : 2;
-    const isWin = gameLogic.checkWinCondition(newGameState, myStone, game.game_maps?.map_data.edges);
+    const isWin = gameLogic.checkWinCondition(newGameState, myStone, game.game_maps?.map_data.edges, game.game_maps?.map_data.initial_positions);
 
     try {
       const { error } = await supabase

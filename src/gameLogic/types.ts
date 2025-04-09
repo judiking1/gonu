@@ -14,5 +14,5 @@ export interface GameLogic {
     userId: string
   ): { valid: boolean; message?: string };
   moveStone(fromNode: string, toNode: string, game: Game, userId: string): Game["game_state"];
-  checkWinCondition(gameState: Game["game_state"], playerStone: number,edges: [string, string][] ): boolean;
+  checkWinCondition(gameState: Game["game_state"], playerStone: number,edges: [string, string][], initial_positions?:{ black: string[]; white: string[] } ): boolean;
 }
