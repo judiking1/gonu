@@ -35,7 +35,7 @@ function App() {
       <div className="w-full h-full bg-gray-50">
         <Header />
         <div className="pt-16 h-[calc(100%-64px)]">
-          <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />

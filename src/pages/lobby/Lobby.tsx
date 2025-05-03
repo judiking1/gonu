@@ -14,7 +14,6 @@ export default function Lobby() {
 
   useEffect(() => {
     loadGames();
-    // 실시간 업데이트를 위한 구독
     const subscription = supabase
       .channel('games')
       .on(
@@ -55,25 +54,21 @@ export default function Lobby() {
         return;
       }
 
-      // 플레이어가 나간 게임이나 오래된 대기 게임을 필터링
       const now = new Date();
       const filteredGames = (games || []).filter(game => {
         const gameDate = new Date(game.created_at);
         const hoursDiff = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
-        
-        // 게임이 24시간 이상 지났거나
+
         if (hoursDiff >= 24) {
           deleteGame(game.id);
           return false;
         }
-        
-        // 대기 중인 게임이 1시간 이상 지났거나
+
         if (game.status === 'waiting' && hoursDiff >= 1) {
           deleteGame(game.id);
           return false;
         }
-        
-        // 게임 생성자가 나간 경우
+
         if (game.status === 'waiting' && !game.player1_id) {
           deleteGame(game.id);
           return false;
@@ -92,10 +87,7 @@ export default function Lobby() {
 
   const deleteGame = async (gameId: string) => {
     try {
-      await supabase
-        .from('games')
-        .delete()
-        .eq('id', gameId);
+      await supabase.from('games').delete().eq('id', gameId);
     } catch (error) {
       console.error('Error deleting game:', error);
     }
@@ -109,7 +101,6 @@ export default function Lobby() {
     }
 
     try {
-      // 먼저 게임 상태를 확인
       const { data: gameData, error: checkError } = await supabase
         .from('games')
         .select('*')
@@ -127,12 +118,11 @@ export default function Lobby() {
         return;
       }
 
-      // 게임 참여 시도
       const { error: updateError } = await supabase
         .from('games')
         .update({
           player2_id: user.id,
-          player2_ready: false
+          player2_ready: false,
         })
         .eq('id', gameId);
 
@@ -142,7 +132,6 @@ export default function Lobby() {
         return;
       }
 
-      console.log('Joining game:', gameId);
       navigate(`/game/${gameId}`);
     } catch (error) {
       console.error('게임 참여 에러:', error);
@@ -151,13 +140,11 @@ export default function Lobby() {
   };
 
   const handleGameClick = (game: Game) => {
-    // 이미 참여한 게임이면 게임 페이지로 이동
     if (game.player1_id === user?.id || game.player2_id === user?.id) {
       navigate(`/game/${game.id}`);
       return;
     }
 
-    // 대기 중인 게임이면 참가
     if (game.status === 'waiting' && !game.player2_id) {
       joinGame(game.id);
     }
@@ -165,57 +152,125 @@ export default function Lobby() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50">
+    <div className="py-8 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">게임 로비</h1>
           <Link
             to="/game/create"
-            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
           >
+            <svg
+              className="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
             새 게임 만들기
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {games.map((game) => (
-            <div 
-              key={game.id} 
-              className="border p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => handleGameClick(game)}
+        {games.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+            <svg
+              className="mx-auto h-12 w-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <h3 className="text-xl font-bold mb-2">{game.title}</h3>
-              <div className="flex justify-between items-center">
-                <div>
-                  <p>방장: {game.player1?.username || '알 수 없음'}</p>
-                  <p>참가자: {game.player2?.username || '대기중'}</p>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M20 12H4"
+              />
+            </svg>
+            <h3 className="mt-2 text-lg font-medium text-gray-900">게임이 없습니다</h3>
+            <p className="mt-1 text-gray-500">
+              새로운 게임을 만들어 친구들과 함께 즐겨보세요!
+            </p>
+            <div className="mt-6">
+              <Link
+                to="/game/create"
+                className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                게임 만들기
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {games.map((game) => (
+              <div
+                key={game.id}
+                className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
+                onClick={() => handleGameClick(game)}
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900 truncate">
+                    {game.title}
+                  </h3>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      game.status === 'waiting'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : game.status === 'playing'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {game.status === 'waiting'
+                      ? '⏳ 대기중'
+                      : game.status === 'playing'
+                      ? '🚩 게임중'
+                      : '🏁 종료'}
+                  </span>
                 </div>
-                <div>
-                  <p>상태: {game.status === 'waiting' ? '대기중' : game.status === 'playing' ? '게임중' : '종료'}</p>
-                  {user && game.status === 'waiting' && game.player1_id !== user.id && !game.player2_id && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">방장:</span>{' '}
+                    {game.player1?.username || '알 수 없음'}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">참가자:</span>{' '}
+                    {game.player2?.username || '대기중'}
+                  </p>
+                </div>
+                {user &&
+                  game.status === 'waiting' &&
+                  game.player1_id !== user.id &&
+                  !game.player2_id && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         joinGame(game.id);
                       }}
-                      className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      className="mt-4 w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                     >
                       참가하기
                     </button>
                   )}
-                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-} 
+}

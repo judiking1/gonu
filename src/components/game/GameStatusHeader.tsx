@@ -59,7 +59,7 @@ export const GameStatusHeader: React.FC<GameStatusHeaderProps> = ({
             </p>
           )}
           {game.status === 'playing' && (
-            <p className="text-blue-700 font-medium mt-2">
+            <p className="text-blue-700 font-medium mt-2 whitespace-nowrap">
               ⏱ {isPlayer1 ? timeLeft : opponentTimeLeft}초 / 기회{' '}
               {isPlayer1 ? periods : opponentPeriods}회
             </p>
@@ -83,7 +83,7 @@ export const GameStatusHeader: React.FC<GameStatusHeaderProps> = ({
               </p>
             )}
           {game.status === 'playing' && game.player2_id && (
-            <p className="text-blue-700 font-medium mt-2">
+            <p className="text-blue-700 font-medium mt-2 whitespace-nowrap">
               ⏱ {isPlayer1 ? opponentTimeLeft : timeLeft}초 / 기회{' '}
               {isPlayer1 ? opponentPeriods : periods}회
             </p>
