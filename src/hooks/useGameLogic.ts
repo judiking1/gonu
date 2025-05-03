@@ -51,6 +51,15 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
         current_turn: newGameState.currentPlayer,
         game_state: newGameState,
         ...(isPlayer1 ? { player2_time_left: 30 } : { player1_time_left: 30 }),
+      
+        ...(isWin
+          ? {
+              player1_time_left: 30,
+              player2_time_left: 30,
+              player1_periods: 3,
+              player2_periods: 3,
+            }
+          : {}),
       };
 
       const { error } = await supabase.from('games').update(update).eq('id', game.id);

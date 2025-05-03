@@ -47,20 +47,27 @@ const Game = () => {
       </div>
     );
 
-  const myPeriods = user?.id === game.player1_id ? game.player1_periods : game.player2_periods;
-  const myTimeLeft = user?.id === game.player1_id ? game.player1_time_left : game.player2_time_left;
+    const isPlayer1 = user?.id === game.player1_id;
+
+    const myPeriods = isPlayer1 ? game.player1_periods : game.player2_periods;
+    const myTimeLeft = isPlayer1 ? game.player1_time_left : game.player2_time_left;
+    
+    const opponentPeriods = isPlayer1 ? game.player2_periods : game.player1_periods;
+    const opponentTimeLeft = isPlayer1 ? game.player2_time_left : game.player1_time_left;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gray-50 min-h-screen">
       <div className="flex-1 bg-white rounded-lg shadow-lg p-6">
         <GameHeader game={game} user={user} />
         <GameReadyStatus
-          game={game}
-          isReady={isReady}
-          countdown={countdown}
-          periods={myPeriods}
-          timeLeft={myTimeLeft}
-        />
+  game={game}
+  isReady={isReady}
+  countdown={countdown}
+  periods={myPeriods}
+  timeLeft={myTimeLeft}
+  opponentPeriods={opponentPeriods}
+  opponentTimeLeft={opponentTimeLeft}
+/>
         <GameBoard
           game={game}
           user={user}

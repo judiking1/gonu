@@ -54,6 +54,10 @@ export const useGameActions = ({
         current_turn: game.player1_id,
         countdown_start: null,
         game_state: initialGameState,
+        player1_time_left: 30,
+        player2_time_left: 30,
+        player1_periods: 3,
+        player2_periods: 3,
       })
       .eq('id', game.id);
 
@@ -140,6 +144,10 @@ export const useGameActions = ({
           winner_id: winnerId,
           player1_ready: false,
           player2_ready: false,
+          player1_time_left: 30,
+          player2_time_left: 30,
+          player1_periods: 3,
+          player2_periods: 3,
         })
         .eq('id', game.id);
     } catch (error) {
@@ -170,6 +178,10 @@ export const useGameActions = ({
             .update({
               status: 'finished',
               winner_id: game.player2_id,
+              player1_time_left: 30,
+              player2_time_left: 30,
+              player1_periods: 3,
+              player2_periods: 3,
             })
             .eq('id', game.id);
         } else {
@@ -182,6 +194,10 @@ export const useGameActions = ({
             .update({
               status: 'finished',
               winner_id: game.player1_id,
+              player1_time_left: 30,
+              player2_time_left: 30,
+              player1_periods: 3,
+              player2_periods: 3,
             })
             .eq('id', game.id);
         } else {
@@ -191,6 +207,10 @@ export const useGameActions = ({
               player2_id: null,
               player2_ready: false,
               status: 'waiting',
+              player1_time_left: 30,
+              player2_time_left: 30,
+              player1_periods: 3,
+              player2_periods: 3,
             })
             .eq('id', game.id);
         }

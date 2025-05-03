@@ -7,6 +7,8 @@ interface GameReadyStatusProps {
   countdown: number | null;
   periods: number;
   timeLeft: number;
+  opponentPeriods: number;
+  opponentTimeLeft: number;
 }
 
 export const GameReadyStatus: React.FC<GameReadyStatusProps> = ({
@@ -15,6 +17,8 @@ export const GameReadyStatus: React.FC<GameReadyStatusProps> = ({
   countdown,
   periods,
   timeLeft,
+  opponentPeriods,
+  opponentTimeLeft,
 }) => {
   return (
     <div className="mb-4">
@@ -34,19 +38,16 @@ export const GameReadyStatus: React.FC<GameReadyStatusProps> = ({
           )}
         </div>
       )}
-      {game.status === 'playing' && (
-        <div className="mb-3 text-center text-lg font-medium text-blue-700">
-          ⏱ 초읽기:{' '}
-          <span className={timeLeft <= 5 ? 'text-red-500 font-bold' : ''}>
-            {timeLeft}
-          </span>
-          초 / 남은 기회:{' '}
-          <span className={periods <= 1 ? 'text-red-500 font-bold' : ''}>
-            {periods}
-          </span>
-          회
-        </div>
-      )}
+{game.status === 'playing' && (
+  <div className="mb-3 text-center">
+    <div className="text-blue-700 font-medium">
+      ⏱ 내 초읽기: {timeLeft}초 / 기회 {periods}회
+    </div>
+    <div className="text-gray-700 font-medium mt-1">
+      👤 상대 초읽기: {opponentTimeLeft}초 / 기회 {opponentPeriods}회
+    </div>
+  </div>
+)}
       <div className="flex justify-around">
         <div>
           <p className="font-medium">방장 👑</p>
