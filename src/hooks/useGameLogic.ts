@@ -26,6 +26,7 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
   const canPlay = game.status === 'playing' && isMyTurn;
   const occupant = game.game_state.occupant;
   const phase = game.game_state.phase;
+  const isPlayer1 = game.player1_id === user.id;
 
   const handlePlaceStone = async (nodeId: string) => {
     if (!canPlay) {
@@ -40,19 +41,19 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
     }
 
     const newGameState = gameLogic.placeStone(nodeId, game, user.id);
-    const myStone = game.player1_id === user.id ? 1 : 2;
+    const myStone = isPlayer1 ? 1 : 2;
     const isWin = gameLogic.checkWinCondition(newGameState, myStone, game.game_maps?.map_data.edges);
 
     try {
-      const { error } = await supabase
-        .from('games')
-        .update({
-          status: isWin ? 'finished' : game.status,
-          winner_id: isWin ? user.id : null,
-          current_turn: newGameState.currentPlayer,
-          game_state: newGameState,
-        })
-        .eq('id', game.id);
+      const update = {
+        status: isWin ? 'finished' : game.status,
+        winner_id: isWin ? user.id : null,
+        current_turn: newGameState.currentPlayer,
+        game_state: newGameState,
+        ...(isPlayer1 ? { player2_time_left: 30 } : { player1_time_left: 30 }),
+      };
+
+      const { error } = await supabase.from('games').update(update).eq('id', game.id);
       if (error) throw error;
     } catch (err) {
       console.error('돌 놓기 실패:', err);
@@ -72,19 +73,24 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
     }
 
     const newGameState = gameLogic.moveStone(fromNode, toNode, game, user.id);
-    const myStone = game.player1_id === user.id ? 1 : 2;
-    const isWin = gameLogic.checkWinCondition(newGameState, myStone, game.game_maps?.map_data.edges, game.game_maps?.map_data.initial_positions);
+    const myStone = isPlayer1 ? 1 : 2;
+    const isWin = gameLogic.checkWinCondition(
+      newGameState,
+      myStone,
+      game.game_maps?.map_data.edges,
+      game.game_maps?.map_data.initial_positions
+    );
 
     try {
-      const { error } = await supabase
-        .from('games')
-        .update({
-          status: isWin ? 'finished' : game.status,
-          winner_id: isWin ? user.id : null,
-          current_turn: newGameState.currentPlayer,
-          game_state: newGameState,
-        })
-        .eq('id', game.id);
+      const update = {
+        status: isWin ? 'finished' : game.status,
+        winner_id: isWin ? user.id : null,
+        current_turn: newGameState.currentPlayer,
+        game_state: newGameState,
+        ...(isPlayer1 ? { player2_time_left: 30 } : { player1_time_left: 30 }),
+      };
+
+      const { error } = await supabase.from('games').update(update).eq('id', game.id);
       if (error) throw error;
     } catch (err) {
       console.error('돌 이동 실패:', err);
@@ -98,7 +104,7 @@ export const useGameLogic = ({ game, user }: UseGameLogicProps) => {
       handlePlaceStone(nodeId);
     } else if (phase === 'movement') {
       if (!selectedNode) {
-        const myStone = game.player1_id === user.id ? 1 : 2;
+        const myStone = isPlayer1 ? 1 : 2;
         if (occupant[nodeId] === myStone) {
           setSelectedNode(nodeId);
         } else {
