@@ -30,8 +30,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const SPACING = 100;
   const maxX = Math.max(...mapData.nodes.map((n: any) => n.x));
   const maxY = Math.max(...mapData.nodes.map((n: any) => n.y));
-  const width = (maxX + 1) * SPACING + 100;
-  const height = (maxY + 1) * SPACING + 100;
+  const width = (maxX + 1) * SPACING;
+  const height = (maxY + 1) * SPACING;
 
   return (
     <div className="relative mx-auto bg-gray-50 rounded" style={{ width, height }}>

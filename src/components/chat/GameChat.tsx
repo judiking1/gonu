@@ -98,8 +98,7 @@ const GameChat: React.FC<GameChatProps> = ({ gameId }) => {
       </div>
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
-        style={{ maxHeight: '400px' }}
+        className="flex-1 overflow-y-auto p-4 space-y-4 max-h-3/4"
       >
         {messages.map((message) => (
           <div
